@@ -43,4 +43,5 @@
 /var/package/*
 !/var/package/*.xml
 
-
+# local
+.idea
