@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <add id="Upcron_Monitor::system_upcron_monitor"
+             title="Upcron Monitor"
+             module="Upcron_Monitor"
+             sortOrder="100"
+             parent="Magento_Backend::system_other_settings"
+             action="upcron_monitor/job/index"
+             resource="Upcron_Monitor::jobs"/>
+        <add id="Upcron_Monitor::system_upcron_monitor_jobs"
+             title="Job Management"
+             module="Upcron_Monitor"
+             sortOrder="10"
+             parent="Upcron_Monitor::system_upcron_monitor"
+             action="upcron_monitor/job/index"
+             resource="Upcron_Monitor::jobs"/>
+    </menu>
+</config>

@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Acl/etc/acl.xsd">
+    <acl>
+        <resources>
+            <resource id="Magento_Backend::admin">
+                <resource id="Magento_Backend::stores">
+                    <resource id="Magento_Backend::stores_settings">
+                        <resource id="Magento_Config::config">
+                            <resource id="Upcron_Monitor::config" title="Upcron Monitor Configuration" sortOrder="100"/>
+                        </resource>
+                    </resource>
+                </resource>
+                <resource id="Magento_Backend::system">
+                    <resource id="Upcron_Monitor::sync" title="Upcron Monitor Sync" sortOrder="100"/>
+                    <resource id="Upcron_Monitor::jobs" title="Upcron Monitor Job Management" sortOrder="110"/>
+                </resource>
+            </resource>
+        </resources>
+    </acl>
+</config>

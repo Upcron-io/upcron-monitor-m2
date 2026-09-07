@@ -1,0 +1,52 @@
+<?php
+
+declare(strict_types=1);
+
+/** @var \Upcron\Monitor\Block\Adminhtml\Config\TestConnectionButton $block */
+?>
+<button type="button"
+        id="<?= $block->escapeHtmlAttr($block->getButtonHtmlId()) ?>"
+        class="action-default scalable"
+        onclick="upcronTestConnection()">
+    <?= $block->escapeHtml(__('Test Connection')) ?>
+</button>
+<span id="upcron_monitor_test_result" style="margin-left: 10px;"></span>
+
+<script>
+function upcronTestConnection() {
+    var btn = document.getElementById('<?= $block->escapeJs($block->getButtonHtmlId()) ?>');
+    var resultEl = document.getElementById('upcron_monitor_test_result');
+    btn.disabled = true;
+    resultEl.innerHTML = '<?= $block->escapeJs(__('Testing...')) ?>';
+    resultEl.style.color = '';
+
+    var params = new URLSearchParams();
+    params.append('form_key', window.FORM_KEY);
+
+    fetch('<?= $block->escapeJs($block->getTestConnectionUrl()) ?>', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: params.toString()
+    })
+    .then(function(response) { return response.json(); })
+    .then(function(data) {
+        if (data.success) {
+            resultEl.style.color = 'green';
+            resultEl.innerHTML = '&#10003; ' + data.message;
+        } else {
+            resultEl.style.color = 'red';
+            resultEl.innerHTML = '&#10007; ' + data.message;
+        }
+    })
+    .catch(function(err) {
+        resultEl.style.color = 'red';
+        resultEl.innerHTML = '&#10007; <?= $block->escapeJs(__('Request failed')) ?>: ' + err;
+    })
+    .finally(function() {
+        btn.disabled = false;
+    });
+}
+</script>

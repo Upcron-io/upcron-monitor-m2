@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+
+    <argument name="data" xsi:type="array">
+        <item name="js_config" xsi:type="array">
+            <item name="provider" xsi:type="string">upcron_monitor_job_listing.upcron_monitor_job_listing_data_source</item>
+        </item>
+    </argument>
+
+    <settings>
+        <spinner>upcron_monitor_job_listing_columns</spinner>
+        <deps>
+            <dep>upcron_monitor_job_listing.upcron_monitor_job_listing_data_source</dep>
+        </deps>
+    </settings>
+
+    <dataSource name="upcron_monitor_job_listing_data_source" component="Magento_Ui/js/grid/provider">
+        <settings>
+            <storageConfig>
+                <param name="indexField" xsi:type="string">job_code</param>
+            </storageConfig>
+            <updateUrl path="mui/index/render"/>
+        </settings>
+        <aclResource>Upcron_Monitor::jobs</aclResource>
+        <dataProvider class="Upcron\Monitor\Model\ResourceModel\Job\DataProvider"
+                      name="upcron_monitor_job_listing_data_source">
+            <settings>
+                <requestFieldName>job_code</requestFieldName>
+                <primaryFieldName>job_code</primaryFieldName>
+            </settings>
+        </dataProvider>
+    </dataSource>
+
+    <listingToolbar name="listing_top">
+        <settings>
+            <sticky>true</sticky>
+        </settings>
+        <paging name="listing_paging"/>
+    </listingToolbar>
+
+    <columns name="upcron_monitor_job_listing_columns">
+        <settings>
+            <editorConfig>
+                <param name="enabled" xsi:type="boolean">false</param>
+            </editorConfig>
+            <childDefaults>
+                <param name="draggable" xsi:type="boolean">false</param>
+            </childDefaults>
+        </settings>
+        <column name="job_code">
+            <settings>
+                <label translate="true">Job Code</label>
+                <sortable>false</sortable>
+            </settings>
+        </column>
+        <column name="group">
+            <settings>
+                <label translate="true">Group</label>
+                <sortable>false</sortable>
+            </settings>
+        </column>
+        <column name="cron_schedule">
+            <settings>
+                <label translate="true">Schedule</label>
+                <sortable>false</sortable>
+            </settings>
+        </column>
+        <column name="grace_period_seconds">
+            <settings>
+                <label translate="true">Grace Period (s)</label>
+                <sortable>false</sortable>
+            </settings>
+        </column>
+        <column name="sync_status">
+            <settings>
+                <label translate="true">Sync Status</label>
+                <sortable>false</sortable>
+            </settings>
+        </column>
+        <column name="heartbeat_uuid">
+            <settings>
+                <label translate="true">Heartbeat UUID</label>
+                <sortable>false</sortable>
+            </settings>
+        </column>
+        <column name="synced_at">
+            <settings>
+                <label translate="true">Last Synced</label>
+                <sortable>false</sortable>
+            </settings>
+        </column>
+        <column name="is_excluded">
+            <settings>
+                <label translate="true">Excluded</label>
+                <options class="Magento\Config\Model\Config\Source\Yesno"/>
+                <dataType>select</dataType>
+                <sortable>false</sortable>
+            </settings>
+        </column>
+        <column name="ping_mode">
+            <settings>
+                <label translate="true">Ping Mode</label>
+                <sortable>false</sortable>
+            </settings>
+        </column>
+        <actionsColumn name="actions" class="Upcron\Monitor\Ui\Component\Listing\Column\ExclusionActions">
+            <settings>
+                <indexField>job_code</indexField>
+                <label translate="true">Action</label>
+            </settings>
+        </actionsColumn>
+    </columns>
+
+</listing>

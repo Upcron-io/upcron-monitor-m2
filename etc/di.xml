@@ -1,0 +1,63 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <preference for="Upcron\Monitor\Api\Data\HeartbeatInterface" type="Upcron\Monitor\Model\Heartbeat"/>
+
+    <!-- Dedicated logger for upcron_monitor → var/log/upcron_monitor.log -->
+    <virtualType name="Upcron\Monitor\Logger\Handler" type="Magento\Framework\Logger\Handler\Base">
+        <arguments>
+            <argument name="fileName" xsi:type="string">/var/log/upcron_monitor.log</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="Upcron\Monitor\Logger" type="Magento\Framework\Logger\Monolog">
+        <arguments>
+            <argument name="name" xsi:type="string">upcron_monitor</argument>
+            <argument name="handlers" xsi:type="array">
+                <item name="system" xsi:type="object">Upcron\Monitor\Logger\Handler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Inject dedicated logger into UpcronApiClient -->
+    <type name="Upcron\Monitor\Service\UpcronApiClient">
+        <arguments>
+            <argument name="logger" xsi:type="object">Upcron\Monitor\Logger</argument>
+        </arguments>
+    </type>
+
+    <!-- Inject dedicated logger into SyncService -->
+    <type name="Upcron\Monitor\Service\SyncService">
+        <arguments>
+            <argument name="logger" xsi:type="object">Upcron\Monitor\Logger</argument>
+        </arguments>
+    </type>
+
+    <!-- Inject dedicated logger into PingService -->
+    <type name="Upcron\Monitor\Service\PingService">
+        <arguments>
+            <argument name="logger" xsi:type="object">Upcron\Monitor\Logger</argument>
+        </arguments>
+    </type>
+
+    <!-- Preference: extend Schedule to expose save() for plugin interception.
+         Magento's interceptor generator only wraps methods declared on the class itself;
+         inherited methods like save() are invisible to plugins. This thin subclass declares
+         save() explicitly so the interceptor includes it and plugins can be applied. -->
+    <preference for="Magento\Cron\Model\Schedule" type="Upcron\Monitor\Model\Cron\Schedule"/>
+
+    <!-- Plugin: send ping/fail signal on cron job completion via Schedule::save() -->
+    <type name="Upcron\Monitor\Model\Cron\Schedule">
+        <plugin name="upcron_monitor_cron_execution"
+                type="Upcron\Monitor\Plugin\CronScheduleSavePlugin"/>
+    </type>
+
+
+    <!-- CLI: register upcron:sync command -->
+    <type name="Magento\Framework\Console\CommandListInterface">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="upcron_sync" xsi:type="object">Upcron\Monitor\Console\Command\SyncCommand</item>
+            </argument>
+        </arguments>
+    </type>
+</config>
