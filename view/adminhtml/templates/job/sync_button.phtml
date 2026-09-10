@@ -43,17 +43,15 @@ function upcronSync() {
             resultEl.style.color = '#1a7f37';
             resultEl.style.border = '1px solid #1a7f37';
             resultEl.textContent = data.synced + ' <?= $block->escapeJs(__('heartbeats synced successfully')) ?>';
-            if (window.uiRegistry) {
-                var provider = window.uiRegistry('upcron_monitor_job_listing.upcron_monitor_job_listing_data_source');
-                if (provider && typeof provider.reload === 'function') {
-                    provider.reload({ refresh: true });
-                }
-            }
         } else {
             resultEl.style.background = '#fce8e6';
             resultEl.style.color = '#c0392b';
             resultEl.style.border = '1px solid #c0392b';
             resultEl.textContent = data.message || '<?= $block->escapeJs(__('Sync failed')) ?>';
+        }
+
+        if (data.success || data.partial) {
+            reloadUpcronJobListing();
         }
     })
     .catch(function(err) {
@@ -65,5 +63,16 @@ function upcronSync() {
     .finally(function() {
         btn.disabled = false;
     });
+}
+
+function reloadUpcronJobListing() {
+    if (!window.uiRegistry) {
+        return;
+    }
+
+    var provider = window.uiRegistry('upcron_monitor_job_listing.upcron_monitor_job_listing_data_source');
+    if (provider && typeof provider.reload === 'function') {
+        provider.reload({ refresh: true });
+    }
 }
 </script>

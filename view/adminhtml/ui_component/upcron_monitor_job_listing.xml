@@ -36,6 +36,38 @@
         <settings>
             <sticky>true</sticky>
         </settings>
+        <massaction name="listing_massaction">
+            <settings>
+                <selectProvider>upcron_monitor_job_listing.upcron_monitor_job_listing.upcron_monitor_job_listing_columns.ids</selectProvider>
+                <indexField>job_code</indexField>
+            </settings>
+            <action name="exclude">
+                <settings>
+                    <url path="upcron_monitor/job/massToggleExclusion">
+                        <param name="excluded">1</param>
+                    </url>
+                    <type>exclude</type>
+                    <label translate="true">Exclude selected</label>
+                    <confirm>
+                        <message translate="true">Exclude selected jobs from Upcron monitoring?</message>
+                        <title translate="true">Exclude jobs</title>
+                    </confirm>
+                </settings>
+            </action>
+            <action name="include">
+                <settings>
+                    <url path="upcron_monitor/job/massToggleExclusion">
+                        <param name="excluded">0</param>
+                    </url>
+                    <type>include</type>
+                    <label translate="true">Include selected</label>
+                    <confirm>
+                        <message translate="true">Include selected jobs in Upcron monitoring?</message>
+                        <title translate="true">Include jobs</title>
+                    </confirm>
+                </settings>
+            </action>
+        </massaction>
         <paging name="listing_paging"/>
     </listingToolbar>
 
@@ -48,6 +80,11 @@
                 <param name="draggable" xsi:type="boolean">false</param>
             </childDefaults>
         </settings>
+        <selectionsColumn name="ids" sortOrder="0">
+            <settings>
+                <indexField>job_code</indexField>
+            </settings>
+        </selectionsColumn>
         <column name="job_code">
             <settings>
                 <label translate="true">Job Code</label>

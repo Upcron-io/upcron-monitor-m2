@@ -7,6 +7,7 @@ namespace Upcron\Monitor\Service;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Stdlib\DateTime\DateTime;
 use Psr\Log\LoggerInterface;
+use Upcron\Monitor\Api\Data\HeartbeatInterface;
 use Upcron\Monitor\Model\Config\ConfigProvider;
 use Upcron\Monitor\Model\HeartbeatRepository;
 
@@ -25,8 +26,9 @@ class SyncService
     /**
      * Sync all non-excluded discovered jobs to Upcron.
      *
-     * Uses collect-then-persist: all API calls happen first (Phase 1).
-     * Only if Phase 1 completes without error are DB records written (Phase 2).
+     * Persists each successful API response before processing the next job.
+     * If a later request fails, previously confirmed heartbeats remain reflected
+     * in Magento and the sync stops immediately.
      *
      * @return array{synced: int, errors: string[]}
      */
@@ -62,8 +64,8 @@ class SyncService
             return ['synced' => 0, 'errors' => []];
         }
 
-        // ── Phase 1: API calls (collect results, abort on first error) ──────
-        $apiResults = [];
+        $synced = 0;
+        $now = $this->dateTime->gmtDate();
         foreach ($toSync as $jobCode => $entry) {
             $jobData  = $entry['job_data'];
             $heartbeat = $entry['heartbeat'];
@@ -95,7 +97,7 @@ class SyncService
                 }
 
                 $data = $response['data'] ?? $response;
-                $apiResults[$jobCode] = [
+                $result = [
                     'uuid'      => $data['id'] ?? ($existingUuid ?? ''),
                     'ping_url'  => $data['ping_url'] ?? '',
                     'start_url' => $data['start_url'] ?? '',
@@ -103,46 +105,52 @@ class SyncService
                     'job_data'  => $jobData,
                 ];
 
+                $this->persistResult($jobCode, $result, $existing[$jobCode] ?? null, $now);
+                $synced++;
+
                 $this->logger->info(
                     '[upcron_monitor] SyncService: synced | job_code=' . $jobCode .
-                    ' | uuid=' . ($apiResults[$jobCode]['uuid'])
+                    ' | uuid=' . $result['uuid']
                 );
             } catch (LocalizedException $e) {
                 $this->logger->error(
                     '[upcron_monitor] SyncService: API error | job_code=' . $jobCode .
                     ' | error=' . $e->getMessage()
                 );
-                // Abort entire sync — no DB writes
+                $this->logger->warning(
+                    '[upcron_monitor] SyncService: partial sync interrupted | synced=' . $synced
+                );
+
                 return [
-                    'synced' => 0,
+                    'synced' => $synced,
                     'errors' => [$e->getMessage()],
                 ];
             }
         }
 
-        // ── Phase 2: DB writes (only if Phase 1 fully succeeded) ────────────
-        $now = $this->dateTime->gmtDate();
-        foreach ($apiResults as $jobCode => $result) {
-            $heartbeat = $existing[$jobCode] ?? null;
-            if ($heartbeat === null) {
-                $heartbeat = $this->heartbeatRepository->getOrCreate($jobCode);
-            }
-
-            $heartbeat->setJobCode($jobCode);
-            $heartbeat->setCronSchedule($result['job_data']['cron_schedule']);
-            $heartbeat->setGracePeriodSeconds($result['job_data']['grace_period_seconds']);
-            $heartbeat->setHeartbeatUuid($result['uuid']);
-            $heartbeat->setPingUrl($result['ping_url'] ?: null);
-            $heartbeat->setStartUrl($result['start_url'] ?: null);
-            $heartbeat->setFailUrl($result['fail_url'] ?: null);
-            $heartbeat->setSyncedAt($now);
-
-            $this->heartbeatRepository->save($heartbeat);
-        }
-
-        $synced = count($apiResults);
         $this->logger->info('[upcron_monitor] SyncService: sync completed | synced=' . $synced . ' | errors=0');
 
         return ['synced' => $synced, 'errors' => []];
+    }
+
+    /**
+     * @param array{uuid: string, ping_url: string, start_url: string, fail_url: string, job_data: array<string, mixed>} $result
+     */
+    private function persistResult(string $jobCode, array $result, ?HeartbeatInterface $heartbeat, string $now): void
+    {
+        if ($heartbeat === null) {
+            $heartbeat = $this->heartbeatRepository->getOrCreate($jobCode);
+        }
+
+        $heartbeat->setJobCode($jobCode);
+        $heartbeat->setCronSchedule($result['job_data']['cron_schedule']);
+        $heartbeat->setGracePeriodSeconds($result['job_data']['grace_period_seconds']);
+        $heartbeat->setHeartbeatUuid($result['uuid']);
+        $heartbeat->setPingUrl($result['ping_url'] ?: null);
+        $heartbeat->setStartUrl($result['start_url'] ?: null);
+        $heartbeat->setFailUrl($result['fail_url'] ?: null);
+        $heartbeat->setSyncedAt($now);
+
+        $this->heartbeatRepository->save($heartbeat);
     }
 }

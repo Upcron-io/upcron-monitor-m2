@@ -6,6 +6,7 @@ namespace Upcron\Monitor\Service;
 
 use Magento\Cron\Model\Config\Data as CronConfig;
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Store\Model\ScopeInterface;
 
 class JobDiscoveryService
 {
@@ -41,8 +42,8 @@ class JobDiscoveryService
 
                 [$schedule, $isResolved] = $this->resolveSchedule($jobConfig);
 
-                // Skip jobs with no schedule — they cannot be heartbeat-monitored
-                if ($schedule === '') {
+                // Keep config-path jobs visible even when their schedule has not been configured.
+                if ($schedule === '' && empty($jobConfig['config_path'])) {
                     continue;
                 }
 
@@ -78,14 +79,14 @@ class JobDiscoveryService
         // Config path — resolve at sync time
         if (!empty($jobConfig['config_path'])) {
             $configPath = (string) $jobConfig['config_path'];
-            $resolved = $this->scopeConfig->getValue($configPath, ScopeConfigInterface::SCOPE_TYPE_DEFAULT);
+            $resolved = $this->scopeConfig->getValue($configPath, ScopeInterface::SCOPE_STORE);
 
             if ($resolved !== null && $resolved !== '') {
                 return [(string) $resolved, true];
             }
 
-            // Unresolvable — return raw config path, mark as not resolved
-            return [$configPath, false];
+            // Not configured — keep the job visible with an empty schedule, but never sync it.
+            return ['', false];
         }
 
         return ['', false];
