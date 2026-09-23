@@ -58,6 +58,18 @@ class UpcronApiClient
     }
 
     /**
+     * Get current organization's subscription resource usage.
+     *
+     * @return array<string, mixed>
+     * @throws LocalizedException
+     */
+    public function getSubscriptionUsage(): array
+    {
+        $url = rtrim($this->getValidatedBaseUrl(), '/') . '/subscription/usage';
+        return $this->request('GET', $url);
+    }
+
+    /**
      * Ping a URL (start/success/fail) — never throws, errors are logged only.
      */
     public function ping(string $url): void

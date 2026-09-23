@@ -31,9 +31,16 @@ class Execute extends Action implements HttpPostActionInterface
             $result = $this->syncService->sync($force);
 
             if (!empty($result['errors'])) {
+                $synced = (int) $result['synced'];
+                $message = $synced > 0
+                    ? (string) __('Sync interrupted after %1 heartbeats were synced: %2', $synced, implode(', ', $result['errors']))
+                    : (string) __('Sync failed: %1', implode(', ', $result['errors']));
+
                 return $this->jsonFactory->create()->setData([
                     'success' => false,
-                    'message' => 'Sync failed: ' . implode(', ', $result['errors']) . '. No changes were saved.',
+                    'partial' => $synced > 0,
+                    'synced' => $synced,
+                    'message' => $message,
                 ]);
             }
 

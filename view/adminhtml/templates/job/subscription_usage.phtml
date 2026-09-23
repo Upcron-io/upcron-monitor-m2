@@ -1,0 +1,15 @@
+<?php
+declare(strict_types=1);
+
+/** @var \Upcron\Monitor\Block\Adminhtml\Job\SubscriptionUsage $block */
+$usage = $block->getDisplayData();
+?>
+<div style="margin-bottom: 12px;">
+    <?php if ($usage['status'] === 'available'): ?>
+        <span><?= $block->escapeHtml(
+            __('Heartbeats: %1 used / %2 available (%3 total).', $usage['used'], $usage['available'], $usage['limit'])
+        ) ?></span>
+    <?php else: ?>
+        <span class="message message-warning"><?= $block->escapeHtml(__($usage['message'])) ?></span>
+    <?php endif; ?>
+</div>

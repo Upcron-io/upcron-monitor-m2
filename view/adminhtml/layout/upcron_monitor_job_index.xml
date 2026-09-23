@@ -4,6 +4,10 @@
     <update handle="formkey"/>
     <body>
         <referenceContainer name="content">
+            <block class="Upcron\Monitor\Block\Adminhtml\Job\SubscriptionUsage"
+                   name="upcron_monitor_subscription_usage"
+                   template="Upcron_Monitor::job/subscription_usage.phtml"
+                   before="upcron_monitor_sync_button"/>
             <block class="Upcron\Monitor\Block\Adminhtml\Job\SyncButton"
                    name="upcron_monitor_sync_button"
                    template="Upcron_Monitor::job/sync_button.phtml"

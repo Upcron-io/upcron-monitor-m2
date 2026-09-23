@@ -40,7 +40,12 @@ class SyncCommand extends Command
             $result = $this->syncService->sync($force);
 
             if (!empty($result['errors'])) {
-                $output->writeln('<error>Sync failed: ' . implode(', ', $result['errors']) . '. No changes were saved.</error>');
+                $synced = (int) $result['synced'];
+                $message = $synced > 0
+                    ? 'Sync interrupted after ' . $synced . ' heartbeats were synced: '
+                    : 'Sync failed: ';
+
+                $output->writeln('<error>' . $message . implode(', ', $result['errors']) . '</error>');
                 return Command::FAILURE;
             }
 
