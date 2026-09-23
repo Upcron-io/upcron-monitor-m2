@@ -1,5 +1,5 @@
 {
-    "name": "upcron/magento2-monitor",
+    "name": "upcron/monitor-m2",
     "description": "Upcron cron job monitoring integration for Magento 2",
     "type": "magento2-module",
     "license": "MIT",
